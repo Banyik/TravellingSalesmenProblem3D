@@ -46,18 +46,19 @@ public class Generate : MonoBehaviour
                 routedRoutes.Add(cubeList[currentCube]);
                 for (int j = 0; j < cubeList.Count; j++)
                 {
+                    float distance = 0.0f;
                     float tempDistance = float.MaxValue;
                     oldCube = currentCube;
                     oldCubesInCalc.Add(oldCube);
                     for (int i = 0; i < cubeList.Count; i++)
                     {
-                        float distance = Vector3.Distance(cubeList[oldCube].transform.position, cubeList[i].transform.position);
+                        distance = Vector3.Distance(cubeList[oldCube].transform.position, cubeList[i].transform.position);
                         if(distance < tempDistance && distance != 0 && !routedRoutes.Contains(cubeList[i])){
                             currentCube = i;
                             tempDistance = distance;
-                            currentDistance += distance;
                         }
                     }
+                    currentDistance += distance;
                     if(!routedRoutes.Contains(cubeList[currentCube]))
                         routedRoutes.Add(cubeList[currentCube]);
                     newCubesInCalc.Add(currentCube);
