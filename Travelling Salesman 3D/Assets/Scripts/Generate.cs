@@ -61,56 +61,76 @@ public class Generate : MonoBehaviour
         float xc = (x + xOffset) / x * MapMultiply;
         float zc = (z + yOffset) / z * MapMultiply;
         float y = Mathf.PerlinNoise(xc,zc);
-        if(y>0.2){
-            var clone = Instantiate(Cube, new Vector3(x + UnityEngine.Random.Range(1,5),y + UnityEngine.Random.Range(1,10), z + UnityEngine.Random.Range(1,5)*3), Quaternion.Euler(0,0,0));
-            cubeList.Add(clone);
-        }
-            
+        var clone = Instantiate(Cube, new Vector3(x + UnityEngine.Random.Range(1,5),y + UnityEngine.Random.Range(1,10), z + UnityEngine.Random.Range(1,5)*3), Quaternion.Euler(0,0,0));
+        cubeList.Add(clone);
     }
 
     void FindPath (){
+        var watch = new System.Diagnostics.Stopwatch();
+        watch.Start();
         float maxDistance = float.MaxValue;   
+        //Ún. 'Keret' ciklus. Ennek segítségével az összes csomópontról indulhatunk
         for (int k = 0; k < cubeList.Count; k++)
         {
+            float distance = 0.0f;
             currentDistance = 0.0f;
+            //currentCube: a cubeList-ből kiválasztott csomópontról való indulás
             currentCube = k;
             routedRoutes.Add(cubeList[currentCube]);
+            //Ún. 'Core' ciklus. Iteráló ciklus hogy a lista összes elemén végigfusson az algoritmus
             for (int j = 0; j < cubeList.Count; j++)
             {
-                float distance = 0.0f;
+                distance = 0.0f;
                 float tempDistance = float.MaxValue;
+                //új érték, az oldCube az induló (de nem kezdeti) csomópont, mivel a currentCube át lesz írva
+                //a következő csomópontra
                 oldCube = currentCube;
                 oldCubesInCalc.Add(oldCube);
                 for (int i = 0; i < cubeList.Count; i++)
                 {
+                    //Legrövidebb csomó megkeresése ismétlődés nélkül.
                     distance = Vector3.Distance(cubeList[oldCube].transform.position, cubeList[i].transform.position);
                     if(distance < tempDistance && distance != 0 && !routedRoutes.Contains(cubeList[i])){
                         currentCube = i;
                         tempDistance = distance;
                     }
                 }
+                //Távolság és csomópont érték hozzáadás
                 currentDistance += distance;
                 if(!routedRoutes.Contains(cubeList[currentCube]))
                     routedRoutes.Add(cubeList[currentCube]);
                 newCubesInCalc.Add(currentCube);
             }
-            float lastDistance = Vector3.Distance(cubeList[currentCube].transform.position, cubeList[0].transform.position);
-            currentDistance += lastDistance;
+            //Az utolsó elem összekötése az első elemmel, ahhoz a távolság lemérése és számítási listába beírás
+            distance = Vector3.Distance(cubeList[currentCube].transform.position, cubeList[0].transform.position);
+            currentDistance += distance;
             oldCubesInCalc.Add(currentCube);
             newCubesInCalc.Add(k);
-            Debug.Log("Distance no. " + k + " : " + currentDistance);
+            //Debug.Log("Distance no. " + k + " : " + currentDistance);
             if(currentDistance<maxDistance){
-                Debug.Log("Smaller Distance: " + currentDistance);
+                //Debug.Log("Smaller Distance: " + currentDistance);
+                //Összeadott távolságok lemérése, ha nagyobb mint az előző érték akkor átírások
+                //És (majdnem) végleges listák adatainak törlése, átírása a számító lista értékeiből
                 maxDistance = currentDistance;
                 oldCubes.Clear();
                 newCubes.Clear();
                 oldCubes.AddRange(oldCubesInCalc);
                 newCubes.AddRange(newCubesInCalc);
             }
+            //Számítási listák törlése az újboli számításhoz
             oldCubesInCalc.Clear();
             newCubesInCalc.Clear();
             routedRoutes.Clear();
         }
+        //Debugolásra való kiírások/értékadások
         currentDistance = maxDistance;
+        watch.Stop();
+        Debug.Log("Execution Time: " + watch.Elapsed + " (" + watch.ElapsedMilliseconds + " ms)");
+        //Ismert lefutási idők:
+        //4x4 csomópont (16): 5 ms
+        //15x15 csomópont (255): 7000 ms (7s)
+        //30x30 csomópont (900): 826687 ms (13m 46s)
+        //
+        //Sufni Algoritmus sok szeretettel Banyik Nándor-tól
     }
 }
