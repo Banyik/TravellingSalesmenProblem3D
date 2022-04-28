@@ -11,7 +11,6 @@ public class Generate : MonoBehaviour
     public float yOffset = 100;
     public float MapMultiply = 2;
     float maxOffset = 100000.0f;
-    public bool isGenerated = false;
     public Material lineMat;
     public List<GameObject> cubeList = new List<GameObject>();
     public List<GameObject> routedRoutes = new List<GameObject>();
@@ -34,54 +33,7 @@ public class Generate : MonoBehaviour
             }
         }
         Destroy(Cube);
-        isGenerated = true;
-        if(isGenerated){
-            
-            float maxDistance = float.MaxValue;
-            
-            for (int k = 0; k < cubeList.Count; k++)
-            {
-                currentDistance = 0.0f;
-                currentCube = k;
-                routedRoutes.Add(cubeList[currentCube]);
-                for (int j = 0; j < cubeList.Count; j++)
-                {
-                    float distance = 0.0f;
-                    float tempDistance = float.MaxValue;
-                    oldCube = currentCube;
-                    oldCubesInCalc.Add(oldCube);
-                    for (int i = 0; i < cubeList.Count; i++)
-                    {
-                        distance = Vector3.Distance(cubeList[oldCube].transform.position, cubeList[i].transform.position);
-                        if(distance < tempDistance && distance != 0 && !routedRoutes.Contains(cubeList[i])){
-                            currentCube = i;
-                            tempDistance = distance;
-                        }
-                    }
-                    currentDistance += distance;
-                    if(!routedRoutes.Contains(cubeList[currentCube]))
-                        routedRoutes.Add(cubeList[currentCube]);
-                    newCubesInCalc.Add(currentCube);
-                }
-                float lastDistance = Vector3.Distance(cubeList[currentCube].transform.position, cubeList[0].transform.position);
-                currentDistance += lastDistance;
-                oldCubesInCalc.Add(currentCube);
-                newCubesInCalc.Add(k);
-                Debug.Log("Distance no. " + k + " : " + currentDistance);
-                if(currentDistance<maxDistance){
-                    Debug.Log("Smaller Distance: " + currentDistance);
-                    maxDistance = currentDistance;
-                    oldCubes.Clear();
-                    newCubes.Clear();
-                    oldCubes.AddRange(oldCubesInCalc);
-                    newCubes.AddRange(newCubesInCalc);
-                }
-                oldCubesInCalc.Clear();
-                newCubesInCalc.Clear();
-                routedRoutes.Clear();
-            }
-            currentDistance = maxDistance;
-        }
+        FindPath();
     }
 
     void DrawConnectingLines(){
@@ -114,5 +66,51 @@ public class Generate : MonoBehaviour
             cubeList.Add(clone);
         }
             
+    }
+
+    void FindPath (){
+        float maxDistance = float.MaxValue;   
+        for (int k = 0; k < cubeList.Count; k++)
+        {
+            currentDistance = 0.0f;
+            currentCube = k;
+            routedRoutes.Add(cubeList[currentCube]);
+            for (int j = 0; j < cubeList.Count; j++)
+            {
+                float distance = 0.0f;
+                float tempDistance = float.MaxValue;
+                oldCube = currentCube;
+                oldCubesInCalc.Add(oldCube);
+                for (int i = 0; i < cubeList.Count; i++)
+                {
+                    distance = Vector3.Distance(cubeList[oldCube].transform.position, cubeList[i].transform.position);
+                    if(distance < tempDistance && distance != 0 && !routedRoutes.Contains(cubeList[i])){
+                        currentCube = i;
+                        tempDistance = distance;
+                    }
+                }
+                currentDistance += distance;
+                if(!routedRoutes.Contains(cubeList[currentCube]))
+                    routedRoutes.Add(cubeList[currentCube]);
+                newCubesInCalc.Add(currentCube);
+            }
+            float lastDistance = Vector3.Distance(cubeList[currentCube].transform.position, cubeList[0].transform.position);
+            currentDistance += lastDistance;
+            oldCubesInCalc.Add(currentCube);
+            newCubesInCalc.Add(k);
+            Debug.Log("Distance no. " + k + " : " + currentDistance);
+            if(currentDistance<maxDistance){
+                Debug.Log("Smaller Distance: " + currentDistance);
+                maxDistance = currentDistance;
+                oldCubes.Clear();
+                newCubes.Clear();
+                oldCubes.AddRange(oldCubesInCalc);
+                newCubes.AddRange(newCubesInCalc);
+            }
+            oldCubesInCalc.Clear();
+            newCubesInCalc.Clear();
+            routedRoutes.Clear();
+        }
+        currentDistance = maxDistance;
     }
 }
